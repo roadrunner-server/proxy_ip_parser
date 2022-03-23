@@ -47,11 +47,6 @@ func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
 		return errors.E(errors.Disabled)
 	}
 
-	err = p.cfg.InitDefaults()
-	if err != nil {
-		return err
-	}
-
 	p.log = &zap.Logger{}
 	*p.log = *l
 
