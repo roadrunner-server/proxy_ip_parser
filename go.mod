@@ -1,4 +1,4 @@
-module github.com/roadrunner-server/proxy_ip_parser/v2
+module ipparser
 
 go 1.18
 
