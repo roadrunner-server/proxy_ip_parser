@@ -1,4 +1,4 @@
-package proxy_ip_parser
+package proxy
 
 import (
 	"net"
@@ -26,9 +26,9 @@ var (
 )
 
 type Plugin struct {
-	cfg        *Config
-	log        *zap.Logger
-	trustedMap map[string]bool
+	cfg     *Config
+	log     *zap.Logger
+	trusted []*net.IPNet
 }
 
 func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
@@ -38,7 +38,8 @@ func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
 		return errors.E(errors.Disabled)
 	}
 
-	err := cfg.UnmarshalKey(configKey, &p.cfg)
+	p.cfg = &Config{}
+	err := cfg.UnmarshalKey(configKey, &p.cfg.TrustedSubnets)
 	if err != nil {
 		return errors.E(op, err)
 	}
@@ -50,16 +51,14 @@ func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
 	p.log = &zap.Logger{}
 	*p.log = *l
 
-	p.trustedMap = make(map[string]bool, len(p.cfg.TrustedSubnets))
+	p.trusted = make([]*net.IPNet, len(p.cfg.TrustedSubnets))
 	for i := 0; i < len(p.cfg.TrustedSubnets); i++ {
-		ip, ipNet, err := net.ParseCIDR(p.cfg.TrustedSubnets[i])
+		_, ipNet, err := net.ParseCIDR(p.cfg.TrustedSubnets[i])
 		if err != nil {
 			return errors.E(op, err)
 		}
 
-		for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); inc(ip) {
-			p.trustedMap[ip.String()] = true
-		}
+		p.trusted[i] = ipNet
 	}
 
 	return nil
@@ -67,11 +66,21 @@ func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := net.ParseIP(r.RemoteAddr)
-		if ok := p.trustedMap[ip.String()]; ok {
-			resolvedIp := p.resolveIP(r.Header)
-			if resolvedIp != "" {
-				r.RemoteAddr = resolvedIp
+		host, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			r.Header.Del(xff)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		ip := net.ParseIP(host)
+		for i := 0; i < len(p.trusted); i++ {
+			if p.trusted[i].Contains(ip) {
+				resolvedIP := p.resolveIP(r.Header)
+				if resolvedIP != "" {
+					r.RemoteAddr = resolvedIP
+				}
+				break
 			}
 		}
 
@@ -85,7 +94,17 @@ func (p *Plugin) Name() string {
 
 // get real ip passing multiple proxy
 func (p *Plugin) resolveIP(headers http.Header) string {
-	if fwd := headers.Get(xff); fwd != "" {
+	// new Forwarded header
+	// https://datatracker.ietf.org/doc/html/rfc7239
+	if fwd := headers.Get(forwarded); fwd != "" {
+		if get := forwardedRegex.FindStringSubmatch(fwd); len(get) > 1 {
+			// IPv6 -> It is important to note that an IPv6 address and any nodename with
+			// node-port specified MUST be quoted
+			// we should trim the "
+			return strings.Trim(get[1], `"`)
+		}
+		// XFF parse
+	} else if fwd := headers.Get(xff); fwd != "" {
 		s := strings.Index(fwd, ", ")
 		if s == -1 {
 			return fwd
@@ -99,15 +118,6 @@ func (p *Plugin) resolveIP(headers http.Header) string {
 		// next -> X-Real-Ip
 	} else if fwd := headers.Get(xrip); fwd != "" {
 		return fwd
-		// new Forwarded header
-		//https://datatracker.ietf.org/doc/html/rfc7239
-	} else if fwd := headers.Get(forwarded); fwd != "" {
-		if get := forwardedRegex.FindStringSubmatch(fwd); len(get) > 1 {
-			// IPv6 -> It is important to note that an IPv6 address and any nodename with
-			// node-port specified MUST be quoted
-			// we should trim the "
-			return strings.Trim(get[1], `"`)
-		}
 	}
 
 	// The logic here is the following:

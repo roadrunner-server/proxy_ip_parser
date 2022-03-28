@@ -1,4 +1,4 @@
-package proxy_ip_parser
+package proxy
 
 import (
 	"net"
@@ -55,7 +55,7 @@ func TestCidrsInRange(t *testing.T) {
 
 	addrs := make([]string, 0, 1024)
 
-	for ip := ip.Mask(ipNet.Mask); ipNet.Contains(ip); inc(ip) {
+	for ipWithMask := ip.Mask(ipNet.Mask); ipNet.Contains(ipWithMask); inc(ipWithMask) {
 		addrs = append(addrs, ip.String())
 	}
 
