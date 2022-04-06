@@ -68,7 +68,6 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
-			r.Header.Del(xff)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
