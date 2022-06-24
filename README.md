@@ -2,7 +2,7 @@
 X-Forwarded-*, Forwarded, True-Client-IP, X-Real-Ip parser http middleware.
 
 ### Description
-When proxy is trusted, the leftmost IP address will be used as a `RemoteAddr`. Otherwice `RemoteAddr` won't be changed.
+When proxy is trusted, the leftmost IP address will be used as a `RemoteAddr`. Otherwise `RemoteAddr` won't be changed.
 
 ### Usage
 ```yaml
