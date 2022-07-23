@@ -3,7 +3,7 @@ module github.com/roadrunner-server/proxy_ip_parser/v2
 go 1.18
 
 require (
-	github.com/roadrunner-server/api/v2 v2.19.0
+	github.com/roadrunner-server/api/v2 v2.20.0
 	github.com/roadrunner-server/errors v1.1.2
 	github.com/roadrunner-server/sdk/v2 v2.18.0
 	github.com/stretchr/testify v1.8.0
