@@ -6,9 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/roadrunner-server/api/v2/plugins/config"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v2/utils"
+	"github.com/roadrunner-server/sdk/v3/utils"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -27,13 +26,21 @@ var (
 	forwardedRegex = regexp.MustCompile(`(?i)(?:for=)([^(;|,| )]+)`)
 )
 
+type Configurer interface {
+	// UnmarshalKey takes a single key and unmarshal it into a Struct.
+	UnmarshalKey(name string, out any) error
+
+	// Has checks if config section exists.
+	Has(name string) bool
+}
+
 type Plugin struct {
 	cfg     *Config
 	log     *zap.Logger
 	trusted []*net.IPNet
 }
 
-func (p *Plugin) Init(cfg config.Configurer, l *zap.Logger) error {
+func (p *Plugin) Init(cfg Configurer, l *zap.Logger) error {
 	const op = errors.Op("proxy_ip_parser_init")
 
 	if !cfg.Has(configKey) {
