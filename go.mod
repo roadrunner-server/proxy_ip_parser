@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/roadrunner-server/errors v1.2.0
-	github.com/roadrunner-server/sdk/v3 v3.0.0
+	github.com/roadrunner-server/sdk/v3 v3.0.1
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/otel/trace v1.11.1
 	go.uber.org/zap v1.24.0
