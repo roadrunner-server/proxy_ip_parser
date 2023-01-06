@@ -26,10 +26,13 @@ var (
 	forwardedRegex = regexp.MustCompile(`(?i)(?:for=)([^(;|,| )]+)`)
 )
 
+type Logger interface {
+	NamedLogger(name string) *zap.Logger
+}
+
 type Configurer interface {
 	// UnmarshalKey takes a single key and unmarshal it into a Struct.
 	UnmarshalKey(name string, out any) error
-
 	// Has checks if config section exists.
 	Has(name string) bool
 }
@@ -40,7 +43,7 @@ type Plugin struct {
 	trusted []*net.IPNet
 }
 
-func (p *Plugin) Init(cfg Configurer, l *zap.Logger) error {
+func (p *Plugin) Init(cfg Configurer, l Logger) error {
 	const op = errors.Op("proxy_ip_parser_init")
 
 	if !cfg.Has(configKey) {
@@ -57,8 +60,7 @@ func (p *Plugin) Init(cfg Configurer, l *zap.Logger) error {
 		return errors.E(errors.Disabled)
 	}
 
-	p.log = &zap.Logger{}
-	*p.log = *l
+	p.log = l.NamedLogger(name)
 
 	p.trusted = make([]*net.IPNet, len(p.cfg.TrustedSubnets))
 	for i := 0; i < len(p.cfg.TrustedSubnets); i++ {
