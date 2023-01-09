@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v3/utils"
+	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
