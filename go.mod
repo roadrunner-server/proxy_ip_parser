@@ -13,7 +13,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/roadrunner-server/tcplisten v1.2.1 // indirect
+	github.com/roadrunner-server/tcplisten v1.3.0 // indirect
 	go.opentelemetry.io/otel v1.13.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
