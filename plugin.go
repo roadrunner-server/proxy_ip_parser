@@ -122,7 +122,7 @@ func (p *Plugin) resolveIP(headers http.Header) string {
 		}
 		// XFF parse
 	} else if fwd := headers.Get(xff); fwd != "" {
-		s := strings.Index(fwd, ", ")
+		s := strings.Index(fwd, ",")
 		if s == -1 {
 			return fwd
 		}

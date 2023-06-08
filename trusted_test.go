@@ -18,6 +18,7 @@ func TestIP(t *testing.T) {
 	headers := []headerTable{
 		{xff, "8.8.8.8", "8.8.8.8"},                                   // Single address
 		{xff, "8.8.8.8, 8.8.4.4", "8.8.8.8"},                          // Multiple
+		{xff, "8.8.8.8,8.8.4.4", "8.8.8.8"},                           // Multiple separated without space, ie https://cloud.google.com/load-balancing/docs/https#x-forwarded-for_header
 		{xff, "[2001:db8:cafe::17]:4711", "[2001:db8:cafe::17]:4711"}, // IPv6 address
 		{xff, "", ""},                                                  // None
 		{xrip, "8.8.8.8", "8.8.8.8"},                                   // Single address
