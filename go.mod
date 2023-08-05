@@ -7,7 +7,7 @@ require (
 	github.com/roadrunner-server/sdk/v4 v4.3.1
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/otel/trace v1.16.0
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 )
 
 require (
