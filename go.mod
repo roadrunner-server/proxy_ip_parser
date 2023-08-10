@@ -3,7 +3,7 @@ module github.com/roadrunner-server/proxy_ip_parser/v4
 go 1.20
 
 require (
-	github.com/roadrunner-server/errors v1.2.0
+	github.com/roadrunner-server/errors v1.3.0
 	github.com/roadrunner-server/sdk/v4 v4.3.1
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/otel/trace v1.16.0
@@ -15,7 +15,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/roadrunner-server/tcplisten v1.3.0 // indirect
 	go.opentelemetry.io/otel v1.16.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
