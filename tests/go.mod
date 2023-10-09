@@ -46,7 +46,7 @@ require (
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/roadrunner-server/api/v4 v4.8.0 // indirect
+	github.com/roadrunner-server/api/v4 v4.9.0 // indirect
 	github.com/roadrunner-server/errors v1.3.0 // indirect
 	github.com/roadrunner-server/goridge/v3 v3.8.1 // indirect
 	github.com/roadrunner-server/sdk/v4 v4.5.2 // indirect
