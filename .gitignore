@@ -16,4 +16,4 @@
 vendor/
 
 .idea
-
+.DS_Store
