@@ -3,13 +3,13 @@ module tests
 go 1.22.0
 
 require (
-	github.com/roadrunner-server/config/v4 v4.6.8
+	github.com/roadrunner-server/config/v4 v4.6.9
 	github.com/roadrunner-server/endure/v2 v2.4.3
-	github.com/roadrunner-server/http/v4 v4.5.2
-	github.com/roadrunner-server/logger/v4 v4.2.15
-	github.com/roadrunner-server/proxy_ip_parser/v4 v4.1.16
-	github.com/roadrunner-server/server/v4 v4.5.8
-	github.com/stretchr/testify v1.8.4
+	github.com/roadrunner-server/http/v4 v4.5.3
+	github.com/roadrunner-server/logger/v4 v4.2.16
+	github.com/roadrunner-server/proxy_ip_parser/v4 v4.1.17
+	github.com/roadrunner-server/server/v4 v4.5.9
+	github.com/stretchr/testify v1.9.0
 )
 
 replace github.com/roadrunner-server/proxy_ip_parser/v4 => ../
