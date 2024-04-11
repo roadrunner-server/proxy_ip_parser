@@ -8,7 +8,7 @@ require (
 	github.com/roadrunner-server/http/v4 v4.6.0
 	github.com/roadrunner-server/logger/v4 v4.3.0
 	github.com/roadrunner-server/proxy_ip_parser/v4 v4.1.17
-	github.com/roadrunner-server/server/v4 v4.6.0
+	github.com/roadrunner-server/server/v4 v4.7.0
 	github.com/stretchr/testify v1.9.0
 )
 
