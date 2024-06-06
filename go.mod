@@ -1,6 +1,6 @@
 module github.com/roadrunner-server/proxy_ip_parser/v4
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/roadrunner-server/errors v1.4.0
