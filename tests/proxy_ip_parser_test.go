@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/roadrunner-server/config/v4"
+	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
-	httpPlugin "github.com/roadrunner-server/http/v4"
+	httpPlugin "github.com/roadrunner-server/http/v5"
 	"github.com/roadrunner-server/logger/v4"
-	ipparser "github.com/roadrunner-server/proxy_ip_parser/v4"
+	ipparser "github.com/roadrunner-server/proxy_ip_parser/v5"
 	"github.com/roadrunner-server/server/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,9 +23,8 @@ func TestXFF(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2024.2.0",
 		Path:    "configs/.rr-http-xff.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(
@@ -127,9 +126,8 @@ func TestForwarded(t *testing.T) {
 	cont := endure.New(slog.LevelDebug)
 
 	cfg := &config.Plugin{
-		Version: "2.9.0",
+		Version: "2024.2.0",
 		Path:    "configs/.rr-http-f.yaml",
-		Prefix:  "rr",
 	}
 
 	err := cont.RegisterAll(

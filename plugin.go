@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v4/utils"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -33,7 +33,7 @@ type Logger interface {
 type Configurer interface {
 	// UnmarshalKey takes a single key and unmarshal it into a Struct.
 	UnmarshalKey(name string, out any) error
-	// Has checks if config section exists.
+	// Has checks if a config section exists.
 	Has(name string) bool
 }
 
@@ -77,7 +77,7 @@ func (p *Plugin) Init(cfg Configurer, l Logger) error {
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if val, ok := r.Context().Value(utils.OtelTracerNameKey).(string); ok {
+		if val, ok := r.Context().Value(rrcontext.OtelTracerNameKey).(string); ok {
 			tp := trace.SpanFromContext(r.Context()).TracerProvider()
 			ctx, span := tp.Tracer(val).Start(r.Context(), name)
 			defer span.End()
