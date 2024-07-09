@@ -6,9 +6,9 @@ require (
 	github.com/roadrunner-server/config/v5 v5.0.0
 	github.com/roadrunner-server/endure/v2 v2.4.5
 	github.com/roadrunner-server/http/v5 v5.0.0-20240704135624-7a7ebbcc043f
-	github.com/roadrunner-server/logger/v4 v4.4.5
+	github.com/roadrunner-server/logger/v5 v5.0.0
 	github.com/roadrunner-server/proxy_ip_parser/v5 v5.0.0
-	github.com/roadrunner-server/server/v4 v4.8.5
+	github.com/roadrunner-server/server/v5 v5.0.0
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -57,7 +57,6 @@ require (
 	github.com/roadrunner-server/events v1.0.0 // indirect
 	github.com/roadrunner-server/goridge/v3 v3.8.2 // indirect
 	github.com/roadrunner-server/pool v1.0.0 // indirect
-	github.com/roadrunner-server/sdk/v4 v4.8.0 // indirect
 	github.com/roadrunner-server/tcplisten v1.5.0 // indirect
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect

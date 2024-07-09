@@ -13,9 +13,9 @@ import (
 	"github.com/roadrunner-server/config/v5"
 	"github.com/roadrunner-server/endure/v2"
 	httpPlugin "github.com/roadrunner-server/http/v5"
-	"github.com/roadrunner-server/logger/v4"
+	"github.com/roadrunner-server/logger/v5"
 	ipparser "github.com/roadrunner-server/proxy_ip_parser/v5"
-	"github.com/roadrunner-server/server/v4"
+	"github.com/roadrunner-server/server/v5"
 	"github.com/stretchr/testify/assert"
 )
 
