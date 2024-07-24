@@ -1,9 +1,11 @@
 module github.com/roadrunner-server/proxy_ip_parser/v5
 
-go 1.22.5
+go 1.22
+
+toolchain go1.22.5
 
 require (
-	github.com/roadrunner-server/context v1.0.0
+	github.com/roadrunner-server/context v1.0.1
 	github.com/roadrunner-server/errors v1.4.0
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel/trace v1.28.0
