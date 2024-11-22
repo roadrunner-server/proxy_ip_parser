@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.3
 
 require (
-	github.com/roadrunner-server/context v1.0.1
+	github.com/roadrunner-server/context v1.0.2
 	github.com/roadrunner-server/errors v1.4.1
 	github.com/stretchr/testify v1.9.0
 	go.opentelemetry.io/otel/trace v1.32.0
