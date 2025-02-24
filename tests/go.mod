@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/roadrunner-server/config/v5 v5.1.4
+	github.com/roadrunner-server/config/v5 v5.1.5
 	github.com/roadrunner-server/endure/v2 v2.6.1
 	github.com/roadrunner-server/http/v5 v5.2.3
 	github.com/roadrunner-server/logger/v5 v5.1.4
@@ -29,7 +29,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/pprof v0.0.0-20250208200701-d0013a598941 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -58,8 +57,8 @@ require (
 	github.com/roadrunner-server/errors v1.4.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
 	github.com/roadrunner-server/goridge/v3 v3.8.3 // indirect
-	github.com/roadrunner-server/pool v1.1.2 // indirect
-	github.com/roadrunner-server/tcplisten v1.5.1 // indirect
+	github.com/roadrunner-server/pool v1.1.3 // indirect
+	github.com/roadrunner-server/tcplisten v1.5.2 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
