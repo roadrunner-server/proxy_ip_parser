@@ -50,14 +50,14 @@ require (
 	github.com/prometheus/procfs v0.16.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.50.1 // indirect
-	github.com/roadrunner-server/api/v4 v4.18.1 // indirect
+	github.com/roadrunner-server/api/v4 v4.19.0 // indirect
 	github.com/roadrunner-server/context v1.0.2 // indirect
 	github.com/roadrunner-server/errors v1.4.1 // indirect
 	github.com/roadrunner-server/events v1.0.1 // indirect
 	github.com/roadrunner-server/goridge/v3 v3.8.3 // indirect
 	github.com/roadrunner-server/pool v1.1.3 // indirect
 	github.com/roadrunner-server/tcplisten v1.5.2 // indirect
-	github.com/sagikazarmark/locafero v0.8.0 // indirect
+	github.com/sagikazarmark/locafero v0.9.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
