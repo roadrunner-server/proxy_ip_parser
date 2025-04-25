@@ -63,7 +63,7 @@ func (p *Plugin) Init(cfg Configurer, l Logger) error {
 	p.log = l.NamedLogger(name)
 
 	p.trusted = make([]*net.IPNet, len(p.cfg.TrustedSubnets))
-	for i := 0; i < len(p.cfg.TrustedSubnets); i++ {
+	for i := range p.cfg.TrustedSubnets {
 		_, ipNet, err := net.ParseCIDR(p.cfg.TrustedSubnets[i])
 		if err != nil {
 			return errors.E(op, err)
@@ -91,7 +91,7 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 		}
 
 		ip := net.ParseIP(host)
-		for i := 0; i < len(p.trusted); i++ {
+		for i := range p.trusted {
 			if p.trusted[i].Contains(ip) {
 				resolvedIP := p.resolveIP(r.Header)
 				if resolvedIP != "" {
