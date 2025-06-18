@@ -5,12 +5,12 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/roadrunner-server/config/v5 v5.1.7
+	github.com/roadrunner-server/config/v5 v5.1.8
 	github.com/roadrunner-server/endure/v2 v2.6.2
-	github.com/roadrunner-server/http/v5 v5.2.6
-	github.com/roadrunner-server/logger/v5 v5.1.7
+	github.com/roadrunner-server/http/v5 v5.2.7
+	github.com/roadrunner-server/logger/v5 v5.1.8
 	github.com/roadrunner-server/proxy_ip_parser/v5 v5.0.0
-	github.com/roadrunner-server/server/v5 v5.2.8
+	github.com/roadrunner-server/server/v5 v5.2.9
 	github.com/stretchr/testify v1.10.0
 )
 
@@ -29,7 +29,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/google/pprof v0.0.0-20250607225305-033d6d78b36a // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
