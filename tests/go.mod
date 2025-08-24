@@ -11,7 +11,7 @@ require (
 	github.com/roadrunner-server/logger/v5 v5.1.8
 	github.com/roadrunner-server/proxy_ip_parser/v5 v5.1.8
 	github.com/roadrunner-server/server/v5 v5.2.9
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 )
 
 replace github.com/roadrunner-server/proxy_ip_parser/v5 => ../
