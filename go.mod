@@ -6,7 +6,7 @@ toolchain go1.26.0
 
 require (
 	github.com/roadrunner-server/context v1.2.0
-	github.com/roadrunner-server/errors v1.4.1
+	github.com/roadrunner-server/errors v1.5.0
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel/trace v1.40.0
 	go.uber.org/zap v1.27.1
