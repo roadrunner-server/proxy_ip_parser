@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"log/slog"
 	"net"
 	"net/http"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 )
 
 const (
@@ -32,7 +32,7 @@ var (
 )
 
 type Logger interface {
-	NamedLogger(name string) *zap.Logger
+	NamedLogger(name string) *slog.Logger
 }
 
 type Configurer interface {
@@ -44,7 +44,7 @@ type Configurer interface {
 
 type Plugin struct {
 	cfg     *Config
-	log     *zap.Logger
+	log     *slog.Logger
 	trusted []*net.IPNet
 	prop    propagation.TextMapPropagator
 }
