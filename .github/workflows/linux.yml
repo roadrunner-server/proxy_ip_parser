@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 60
     strategy:
       matrix:
-        php: [ "8.4" ]
+        php: [ "8.5" ]
         go: [ stable ]
         os: [ "ubuntu-latest" ]
     steps:
@@ -66,7 +66,7 @@ jobs:
           cd tests
           mkdir ./coverage-ci
 
-          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=$(cat pkgs.txt) -coverprofile=./coverage-ci/proxy.out -covermode=atomic ./...
+          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=./... -coverprofile=./coverage-ci/proxy.out -covermode=atomic ./...
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v7

@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"net"
 	"net/http"
 	"regexp"
@@ -8,6 +9,10 @@ import (
 
 	rrcontext "github.com/roadrunner-server/context"
 	"github.com/roadrunner-server/errors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	jprop "go.opentelemetry.io/contrib/propagators/jaeger"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -41,6 +46,7 @@ type Plugin struct {
 	cfg     *Config
 	log     *zap.Logger
 	trusted []*net.IPNet
+	prop    propagation.TextMapPropagator
 }
 
 func (p *Plugin) Init(cfg Configurer, l Logger) error {
@@ -61,6 +67,7 @@ func (p *Plugin) Init(cfg Configurer, l Logger) error {
 	}
 
 	p.log = l.NamedLogger(name)
+	p.prop = propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}, jprop.Jaeger{})
 
 	p.trusted = make([]*net.IPNet, len(p.cfg.TrustedSubnets))
 	for i := range p.cfg.TrustedSubnets {
@@ -77,15 +84,24 @@ func (p *Plugin) Init(cfg Configurer, l Logger) error {
 
 func (p *Plugin) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var span trace.Span
 		if val, ok := r.Context().Value(rrcontext.OtelTracerNameKey).(string); ok {
 			tp := trace.SpanFromContext(r.Context()).TracerProvider()
-			ctx, span := tp.Tracer(val).Start(r.Context(), name)
-			defer span.End()
+			var ctx context.Context
+			ctx, span = tp.Tracer(val, trace.WithSchemaURL(semconv.SchemaURL),
+				trace.WithInstrumentationVersion(otelhttp.Version)).
+				Start(r.Context(), name, trace.WithSpanKind(trace.SpanKindInternal))
+
+			// inject
+			p.prop.Inject(ctx, propagation.HeaderCarrier(r.Header))
 			r = r.WithContext(ctx)
 		}
 
 		host, _, err := net.SplitHostPort(r.RemoteAddr)
 		if err != nil {
+			if span != nil {
+				span.End()
+			}
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -99,6 +115,12 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 				}
 				break
 			}
+		}
+
+		// end span before calling next handler so it measures
+		// only this middleware's processing time
+		if span != nil {
+			span.End()
 		}
 
 		next.ServeHTTP(w, r)
