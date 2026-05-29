@@ -62,3 +62,12 @@ func TestCidrsInRange(t *testing.T) {
 
 	require.Len(t, addrs, 1024)
 }
+
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
+	}
+}

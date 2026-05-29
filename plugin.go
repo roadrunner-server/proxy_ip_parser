@@ -27,9 +27,7 @@ const (
 	forwarded string = "Forwarded"
 )
 
-var (
-	forwardedRegex = regexp.MustCompile(`(?i)(?:for=)([^(;|,| )]+)`)
-)
+var forwardedRegex = regexp.MustCompile(`(?i)(?:for=)([^(;|,| )]+)`)
 
 type Logger interface {
 	NamedLogger(name string) *slog.Logger
@@ -107,8 +105,8 @@ func (p *Plugin) Middleware(next http.Handler) http.Handler {
 		}
 
 		ip := net.ParseIP(host)
-		for i := range p.trusted {
-			if p.trusted[i].Contains(ip) {
+		for _, subnet := range p.trusted {
+			if subnet.Contains(ip) {
 				resolvedIP := p.resolveIP(r.Header)
 				if resolvedIP != "" {
 					r.RemoteAddr = resolvedIP
@@ -144,16 +142,9 @@ func (p *Plugin) resolveIP(headers http.Header) string {
 		}
 		// XFF parse
 	} else if fwd := headers.Get(xff); fwd != "" {
-		s := strings.Index(fwd, ",")
-		if s == -1 {
-			return fwd
-		}
-
-		if len(fwd) < s {
-			return ""
-		}
-
-		return fwd[:s]
+		// take the first address; Cut returns the whole string when no comma is present
+		before, _, _ := strings.Cut(fwd, ",")
+		return before
 		// next -> X-Real-Ip
 	} else if fwd := headers.Get(xrip); fwd != "" {
 		return fwd
@@ -173,13 +164,4 @@ func (p *Plugin) resolveIP(headers http.Header) string {
 	}
 
 	return ""
-}
-
-func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
-	}
 }
