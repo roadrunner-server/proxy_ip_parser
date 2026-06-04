@@ -18,13 +18,14 @@ import (
 )
 
 const (
-	name      string = "proxy_ip_parser"
-	configKey string = "http.trusted_subnets"
-	xff       string = "X-Forwarded-For"
-	xrip      string = "X-Real-Ip"
-	tcip      string = "True-Client-Ip"
-	cfip      string = "Cf-Connecting-Ip"
-	forwarded string = "Forwarded"
+	name       string = "proxy_ip_parser"
+	configKey  string = "http.trusted_subnets"
+	headersKey string = "http.trusted_headers"
+	xff        string = "X-Forwarded-For"
+	xrip       string = "X-Real-Ip"
+	tcip       string = "True-Client-Ip"
+	cfip       string = "Cf-Connecting-Ip"
+	forwarded  string = "Forwarded"
 )
 
 var forwardedRegex = regexp.MustCompile(`(?i)(?:for=)([^(;|,| )]+)`)
@@ -41,10 +42,11 @@ type Configurer interface {
 }
 
 type Plugin struct {
-	cfg     *Config
-	log     *slog.Logger
-	trusted []*net.IPNet
-	prop    propagation.TextMapPropagator
+	cfg       *Config
+	log       *slog.Logger
+	trusted   []*net.IPNet
+	resolvers []resolver
+	prop      propagation.TextMapPropagator
 }
 
 func (p *Plugin) Init(cfg Configurer, l Logger) error {
@@ -76,6 +78,13 @@ func (p *Plugin) Init(cfg Configurer, l Logger) error {
 
 		p.trusted[i] = ipNet
 	}
+
+	if cfg.Has(headersKey) {
+		if err := cfg.UnmarshalKey(headersKey, &p.cfg.TrustedHeaders); err != nil {
+			return errors.E(op, err)
+		}
+	}
+	p.resolvers = buildResolvers(p.cfg.TrustedHeaders)
 
 	return nil
 }
@@ -129,38 +138,101 @@ func (p *Plugin) Name() string {
 	return name
 }
 
-// get real ip passing multiple proxy
-func (p *Plugin) resolveIP(headers http.Header) string {
-	// new Forwarded header
-	// https://datatracker.ietf.org/doc/html/rfc7239
-	if fwd := headers.Get(forwarded); fwd != "" {
-		if get := forwardedRegex.FindStringSubmatch(fwd); len(get) > 1 {
-			// IPv6 -> It is important to note that an IPv6 address and any nodename with
-			// node-port specified MUST be quoted
-			// we should trim the "
-			return strings.Trim(get[1], `"`)
+// resolver extracts a candidate client IP from a single header value.
+type resolver struct {
+	name  string // canonical header name, e.g. "X-Forwarded-For"
+	parse func(string) string
+}
+
+// defaultResolvers returns the built-in resolution chain used when
+// http.trusted_headers is not configured. True-Client-Ip and Cf-Connecting-Ip
+// (CloudFlare) are checked last, matching their historical priority. The parser
+// for each header comes from parserFor, the single source of that mapping.
+func defaultResolvers() []resolver {
+	chain := []string{forwarded, xff, xrip, tcip, cfip}
+	resolvers := make([]resolver, len(chain))
+	for i, h := range chain {
+		resolvers[i] = resolver{h, parserFor(h)}
+	}
+	return resolvers
+}
+
+// buildResolvers turns the configured header allowlist into an ordered resolver
+// chain. Entries are trimmed and canonicalized, blanks and duplicates dropped.
+// An empty allowlist falls back to the default chain.
+func buildResolvers(headers []string) []resolver {
+	resolvers := make([]resolver, 0, len(headers))
+	seen := make(map[string]struct{}, len(headers))
+
+	for _, hdr := range headers {
+		h := strings.TrimSpace(hdr)
+		if h == "" {
+			continue
 		}
-		// XFF parse
-	} else if fwd := headers.Get(xff); fwd != "" {
-		// take the first address; Cut returns the whole string when no comma is present
-		before, _, _ := strings.Cut(fwd, ",")
-		return before
-		// next -> X-Real-Ip
-	} else if fwd := headers.Get(xrip); fwd != "" {
-		return fwd
+
+		canon := http.CanonicalHeaderKey(h)
+		if _, ok := seen[canon]; ok {
+			continue
+		}
+
+		seen[canon] = struct{}{}
+		resolvers = append(resolvers, resolver{canon, parserFor(canon)})
 	}
 
-	// The logic here is the following:
-	// CloudFlare headers
-	// True-Client-IP is a general CF header in which copied information from X-Real-Ip in CF.
-	// CF-Connecting-IP is an Enterprise feature and we check it last in order.
-	// This operations are near O(1) because Headers struct are the map type -> type MIMEHeader map[string][]string
-	if fwd := headers.Get(tcip); fwd != "" {
-		return fwd
+	if len(resolvers) == 0 {
+		return defaultResolvers()
 	}
 
-	if fwd := headers.Get(cfip); fwd != "" {
-		return fwd
+	return resolvers
+}
+
+// parserFor selects the value parser for a canonical header name. The two
+// structured headers keep dedicated parsers; everything else (including custom
+// headers) is taken verbatim.
+func parserFor(canon string) func(string) string {
+	switch canon {
+	case forwarded:
+		return parseForwarded
+	case xff:
+		return parseXFF
+	default:
+		return parseVerbatim
+	}
+}
+
+// parseForwarded extracts the "for=" target from an RFC 7239 Forwarded header.
+// https://datatracker.ietf.org/doc/html/rfc7239
+func parseForwarded(v string) string {
+	if m := forwardedRegex.FindStringSubmatch(v); len(m) > 1 {
+		// An IPv6 address (and any node-port) MUST be quoted, so trim the quotes.
+		return strings.Trim(m[1], `"`)
+	}
+
+	return ""
+}
+
+// parseXFF takes the left-most address from an X-Forwarded-For list.
+func parseXFF(v string) string {
+	// Cut returns the whole string when no comma is present.
+	before, _, _ := strings.Cut(v, ",")
+	return before
+}
+
+// parseVerbatim returns the header value unchanged (X-Real-Ip, True-Client-Ip,
+// Cf-Connecting-Ip and custom headers carry a single address).
+func parseVerbatim(v string) string {
+	return v
+}
+
+// resolveIP returns the first non-empty client IP parsed from the configured
+// (or default) header chain.
+func (p *Plugin) resolveIP(headers http.Header) string {
+	for _, r := range p.resolvers {
+		if raw := headers.Get(r.name); raw != "" {
+			if ip := r.parse(raw); ip != "" {
+				return ip
+			}
+		}
 	}
 
 	return ""

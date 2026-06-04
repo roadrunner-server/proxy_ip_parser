@@ -10,6 +10,7 @@ import (
 	rrcontext "github.com/roadrunner-server/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 )
@@ -22,7 +23,7 @@ func TestMiddlewareSpanEndsBeforeNextHandler(t *testing.T) {
 	_, ipNet, err := net.ParseCIDR("127.0.0.0/8")
 	require.NoError(t, err)
 
-	p := &Plugin{trusted: []*net.IPNet{ipNet}}
+	p := &Plugin{trusted: []*net.IPNet{ipNet}, prop: propagation.TraceContext{}}
 
 	// "next" handler that creates its own span to mark when downstream starts
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +79,7 @@ func TestMiddlewareSpanEndsOnError(t *testing.T) {
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(exporter))
 	t.Cleanup(func() { _ = tp.Shutdown(t.Context()) })
 
-	p := &Plugin{}
+	p := &Plugin{prop: propagation.TraceContext{}}
 
 	nextCalled := false
 	next := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
