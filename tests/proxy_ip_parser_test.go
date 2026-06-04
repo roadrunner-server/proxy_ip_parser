@@ -18,6 +18,7 @@ import (
 	ipparser "github.com/roadrunner-server/proxy_ip_parser/v6"
 	"github.com/roadrunner-server/server/v6"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestXFF(t *testing.T) {
@@ -304,11 +305,11 @@ func TestTrustedHeadersAllowlist(t *testing.T) {
 	req.Header.Set("X-Real-Ip", "5.6.7.8")
 
 	r, err := http.DefaultClient.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
 	body, err := io.ReadAll(r.Body)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "5.6.7.8", string(body))
 	assert.NoError(t, r.Body.Close())
 
@@ -320,11 +321,11 @@ func TestTrustedHeadersAllowlist(t *testing.T) {
 	req.Header.Set("X-Forwarded-For", "5.6.7.8")
 
 	r, err = http.DefaultClient.Do(req)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 200, r.StatusCode)
 
 	body, err = io.ReadAll(r.Body)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "127.0.0.1", string(body))
 	assert.NoError(t, r.Body.Close())
 

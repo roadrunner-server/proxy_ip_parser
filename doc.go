@@ -1,6 +1,6 @@
 // Package proxy provides an HTTP middleware plugin for RoadRunner that resolves
-// the real client IP address from proxy headers (X-Forwarded-For, X-Real-Ip,
-// True-Client-Ip, Cf-Connecting-Ip, Forwarded) when requests arrive through
+// the real client IP address from proxy headers (Forwarded, X-Forwarded-For,
+// X-Real-Ip, True-Client-Ip, Cf-Connecting-Ip) when requests arrive through
 // trusted subnets.
 //
 // The headers consulted are configurable via http.trusted_headers: an ordered
