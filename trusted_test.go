@@ -34,7 +34,7 @@ func TestIP(t *testing.T) {
 		{forwarded, `for="workstation.local",for=198.51.100.17`, "workstation.local"}, // Hostname
 	}
 
-	tr := &Plugin{}
+	tr := &Plugin{resolvers: defaultResolvers()}
 	for _, v := range headers {
 		req := &http.Request{
 			Header: http.Header{
@@ -46,6 +46,66 @@ func TestIP(t *testing.T) {
 				v.expected)
 		}
 	}
+}
+
+// header builds an http.Header from key/value pairs.
+func header(kv ...string) http.Header {
+	h := http.Header{}
+	for i := 0; i+1 < len(kv); i += 2 {
+		h.Set(kv[i], kv[i+1])
+	}
+	return h
+}
+
+func resolverNames(rs []resolver) []string {
+	out := make([]string, len(rs))
+	for i := range rs {
+		out[i] = rs[i].name
+	}
+	return out
+}
+
+// An allowlist consults only the configured headers; unlisted ones are ignored.
+func TestResolveIPAllowlistIgnoresUnlisted(t *testing.T) {
+	p := &Plugin{resolvers: buildResolvers([]string{xrip})}
+	// X-Forwarded-For is present but not on the allowlist, so it is ignored.
+	require.Equal(t, "9.9.9.9", p.resolveIP(header(xff, "8.8.8.8", xrip, "9.9.9.9")))
+}
+
+// The first header in the allowlist that yields a value wins.
+func TestResolveIPOrderWins(t *testing.T) {
+	h := header(xff, "1.1.1.1", xrip, "2.2.2.2")
+
+	xripFirst := &Plugin{resolvers: buildResolvers([]string{xrip, xff})}
+	require.Equal(t, "2.2.2.2", xripFirst.resolveIP(h))
+
+	xffFirst := &Plugin{resolvers: buildResolvers([]string{xff, xrip})}
+	require.Equal(t, "1.1.1.1", xffFirst.resolveIP(h))
+}
+
+// Custom (non-built-in) headers are taken verbatim.
+func TestResolveIPCustomHeaderVerbatim(t *testing.T) {
+	p := &Plugin{resolvers: buildResolvers([]string{"X-Client-Ip"})}
+	require.Equal(t, "3.3.3.3", p.resolveIP(header("X-Client-Ip", "3.3.3.3")))
+}
+
+// A present but unparseable header falls through to the next resolver. The old
+// if/else-if chain short-circuited here; the ordered chain keeps looking.
+func TestResolveIPFallThroughOnParseFailure(t *testing.T) {
+	p := &Plugin{resolvers: buildResolvers([]string{forwarded, xrip})}
+	// "Forwarded" with no for= directive yields nothing, so X-Real-Ip is used.
+	require.Equal(t, "8.8.8.8", p.resolveIP(header(forwarded, "by=203.0.113.43;proto=https", xrip, "8.8.8.8")))
+}
+
+func TestBuildResolvers(t *testing.T) {
+	// trim, canonicalize, dedup, skip blanks
+	rs := buildResolvers([]string{" x-real-ip ", "X-Real-Ip", "", "Cf-Connecting-Ip"})
+	require.Equal(t, []string{xrip, cfip}, resolverNames(rs))
+
+	// empty / all-blank input falls back to the default chain
+	def := resolverNames(defaultResolvers())
+	require.Equal(t, def, resolverNames(buildResolvers(nil)))
+	require.Equal(t, def, resolverNames(buildResolvers([]string{"", "   "})))
 }
 
 func TestCidrsInRange(t *testing.T) {

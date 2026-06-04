@@ -1,6 +1,7 @@
 package proxy_ip_parser //nolint:stylecheck
 
 import (
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -229,6 +230,103 @@ func TestForwarded(t *testing.T) {
 
 	err = r.Body.Close()
 	assert.NoError(t, err)
+
+	stopCh <- struct{}{}
+	wg.Wait()
+}
+
+// TestTrustedHeadersAllowlist verifies that, with trusted_headers: [ X-Real-Ip ],
+// only X-Real-Ip is honored when resolving the client IP and X-Forwarded-For is
+// ignored. The ip worker echoes REMOTE_ADDR so we can assert the resolved value.
+func TestTrustedHeadersAllowlist(t *testing.T) {
+	cont := endure.New(slog.LevelDebug)
+
+	cfg := &config.Plugin{
+		Version: "2024.2.0",
+		Path:    "configs/.rr-http-headers.yaml",
+	}
+
+	err := cont.RegisterAll(
+		cfg,
+		&logger.Plugin{},
+		&server.Plugin{},
+		&ipparser.Plugin{},
+		&httpPlugin.Plugin{},
+	)
+	assert.NoError(t, err)
+
+	err = cont.Init()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ch, err := cont.Serve()
+	assert.NoError(t, err)
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	wg := &sync.WaitGroup{}
+
+	stopCh := make(chan struct{}, 1)
+
+	wg.Go(func() {
+		for {
+			select {
+			case e := <-ch:
+				assert.Fail(t, "error", e.Error.Error())
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+			case <-sig:
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			case <-stopCh:
+				// timeout
+				err = cont.Stop()
+				if err != nil {
+					assert.FailNow(t, "error", err.Error())
+				}
+				return
+			}
+		}
+	})
+
+	time.Sleep(time.Second * 2)
+
+	// X-Real-Ip is on the allowlist -> trusted, becomes REMOTE_ADDR.
+	req, err := http.NewRequest("GET", "http://127.0.0.1:12411", nil)
+	assert.NoError(t, err)
+	req.Header.Set("X-Real-Ip", "5.6.7.8")
+
+	r, err := http.DefaultClient.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, r.StatusCode)
+
+	body, err := io.ReadAll(r.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "5.6.7.8", string(body))
+	assert.NoError(t, r.Body.Close())
+
+	// ---
+
+	// X-Forwarded-For is NOT on the allowlist -> ignored, REMOTE_ADDR stays the peer.
+	req, err = http.NewRequest("GET", "http://127.0.0.1:12411", nil)
+	assert.NoError(t, err)
+	req.Header.Set("X-Forwarded-For", "5.6.7.8")
+
+	r, err = http.DefaultClient.Do(req)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, r.StatusCode)
+
+	body, err = io.ReadAll(r.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, "127.0.0.1", string(body))
+	assert.NoError(t, r.Body.Close())
 
 	stopCh <- struct{}{}
 	wg.Wait()
