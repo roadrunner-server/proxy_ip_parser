@@ -146,15 +146,15 @@ type resolver struct {
 
 // defaultResolvers returns the built-in resolution chain used when
 // http.trusted_headers is not configured. True-Client-Ip and Cf-Connecting-Ip
-// (CloudFlare) are checked last, matching their historical priority.
+// (CloudFlare) are checked last, matching their historical priority. The parser
+// for each header comes from parserFor, the single source of that mapping.
 func defaultResolvers() []resolver {
-	return []resolver{
-		{forwarded, parseForwarded},
-		{xff, parseXFF},
-		{xrip, parseVerbatim},
-		{tcip, parseVerbatim},
-		{cfip, parseVerbatim},
+	chain := []string{forwarded, xff, xrip, tcip, cfip}
+	resolvers := make([]resolver, len(chain))
+	for i, h := range chain {
+		resolvers[i] = resolver{h, parserFor(h)}
 	}
+	return resolvers
 }
 
 // buildResolvers turns the configured header allowlist into an ordered resolver
@@ -164,8 +164,8 @@ func buildResolvers(headers []string) []resolver {
 	resolvers := make([]resolver, 0, len(headers))
 	seen := make(map[string]struct{}, len(headers))
 
-	for i := range headers {
-		h := strings.TrimSpace(headers[i])
+	for _, hdr := range headers {
+		h := strings.TrimSpace(hdr)
 		if h == "" {
 			continue
 		}
@@ -227,9 +227,9 @@ func parseVerbatim(v string) string {
 // resolveIP returns the first non-empty client IP parsed from the configured
 // (or default) header chain.
 func (p *Plugin) resolveIP(headers http.Header) string {
-	for i := range p.resolvers {
-		if raw := headers.Get(p.resolvers[i].name); raw != "" {
-			if ip := p.resolvers[i].parse(raw); ip != "" {
+	for _, r := range p.resolvers {
+		if raw := headers.Get(r.name); raw != "" {
+			if ip := r.parse(raw); ip != "" {
 				return ip
 			}
 		}

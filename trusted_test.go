@@ -59,8 +59,8 @@ func header(kv ...string) http.Header {
 
 func resolverNames(rs []resolver) []string {
 	out := make([]string, len(rs))
-	for i := range rs {
-		out[i] = rs[i].name
+	for i, r := range rs {
+		out[i] = r.name
 	}
 	return out
 }
