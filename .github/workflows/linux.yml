@@ -66,12 +66,12 @@ jobs:
           cd tests
           mkdir ./coverage-ci
 
-          go test -timeout 20m -v -race -cover -tags=debug -failfast -coverpkg=./... -coverprofile=./coverage-ci/proxy.out -covermode=atomic ./...
+          go test -timeout 20m -v -race -cover -tags=debug -coverpkg=github.com/roadrunner-server/proxy_ip_parser/v6/... -coverprofile=./coverage-ci/proxy.out -covermode=atomic ./...
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v7
         with:
-          name: coverage
+          name: coverage-proxy
           path: ./tests/coverage-ci/proxy.out
 
   codecov:
@@ -82,15 +82,35 @@ jobs:
 
     timeout-minutes: 60
     steps:
+      - name: Check out code
+        uses: actions/checkout@v7
       - name: Download code coverage results
         uses: actions/download-artifact@v8
-      - run: |
+        with:
+          pattern: coverage-*
+          path: coverage
+          merge-multiple: true
+      - name: Prepare coverage report
+        run: |
           echo 'mode: atomic' > summary.txt
-          tail -q -n +2 *.out >> summary.txt
-          sed -i '2,${/roadrunner/!d}' summary.txt
+          tail -q -n +2 coverage/*.out >> summary.txt
+          awk '
+            NR == 1 { print; next }
+            /^github\.com\/roadrunner-server\/proxy_ip_parser\/v6\// {
+              sub(/^github\.com\/roadrunner-server\/proxy_ip_parser\/v6\//, "", $0)
+              print
+            }
+          ' summary.txt > summary.filtered.txt
+          mv summary.filtered.txt summary.txt
+          # a profile that maps to no plugin source uploads fine and reports 0%
+          blocks=$(($(wc -l < summary.txt) - 1))
+          if [ "$blocks" -lt 10 ]; then
+            echo "::error::coverage summary holds $blocks blocks, the profile does not map to plugin sources"
+            exit 1
+          fi
 
       - name: upload to codecov
         uses: codecov/codecov-action@v7 # Docs: <https://github.com/codecov/codecov-action>
         with:
-          file: summary.txt
+          files: summary.txt
           fail_ci_if_error: false
