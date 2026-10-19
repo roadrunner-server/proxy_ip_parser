@@ -29,6 +29,7 @@ func TestIP(t *testing.T) {
 		{tcip, "8.8.8.8", "8.8.8.8"},                                   // Single address
 		{forwarded, `for="_foo"`, "_foo"},                              // Hostname
 		{forwarded, `For="[2001:db8:cafe::17]:4711`, `[2001:db8:cafe::17]:4711`},      // IPv6 address
+		{forwarded, `for="[2001:db8:cafe::17]"`, `2001:db8:cafe::17`},                 // IPv6 address without port
 		{forwarded, `for=192.0.2.60;proto=http;by=203.0.113.43`, `192.0.2.60`},        // Multiple params
 		{forwarded, `for=192.0.2.43, for=198.51.100.17`, "192.0.2.43"},                // Multiple params
 		{forwarded, `for="workstation.local",for=198.51.100.17`, "workstation.local"}, // Hostname
