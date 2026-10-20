@@ -7,7 +7,7 @@ toolchain go1.27.2
 require (
 	github.com/roadrunner-server/config/v6 v6.0.0
 	github.com/roadrunner-server/endure/v2 v2.7.0
-	github.com/roadrunner-server/http/v6 v6.0.0
+	github.com/roadrunner-server/http/v6 v6.1.0
 	github.com/roadrunner-server/logger/v6 v6.0.0
 	github.com/roadrunner-server/proxy_ip_parser/v6 v6.0.0
 	github.com/roadrunner-server/server/v6 v6.0.0
