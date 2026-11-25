@@ -205,7 +205,13 @@ func parserFor(canon string) func(string) string {
 func parseForwarded(v string) string {
 	if m := forwardedRegex.FindStringSubmatch(v); len(m) > 1 {
 		// An IPv6 address (and any node-port) MUST be quoted, so trim the quotes.
-		return strings.Trim(m[1], `"`)
+		node := strings.Trim(m[1], `"`)
+		// A bracketed IPv6 address without a port is not a valid IP, so strip the brackets.
+		if strings.HasPrefix(node, "[") && strings.HasSuffix(node, "]") {
+			return node[1 : len(node)-1]
+		}
+
+		return node
 	}
 
 	return ""

@@ -84,6 +84,7 @@ func TestForwarded(t *testing.T) {
 		want   string
 	}{
 		{"for element is extracted", "by=foo;for=3.11.0.1;host=foo.workstation;proto=http", "3.11.0.1"},
+		{"bracketed IPv6 without port is unbracketed", `for="[2001:db8:cafe::17]";proto=http`, "2001:db8:cafe::17"},
 		{"trusted loopback stays loopback", "by=foo;for=127.0.0.1;host=foo.workstation;proto=http", loopback},
 		{"value without for= falls back to the peer", "foo.workstation", loopback},
 	}
